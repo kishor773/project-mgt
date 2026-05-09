@@ -1,0 +1,374 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["fullTextIndex"]
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model activity_logs {
+  id              BigInt        @id @default(autoincrement())
+  organization_id BigInt
+  user_id         BigInt?
+  entity_type     String?       @db.VarChar(100)
+  entity_id       BigInt?
+  action          String?       @db.VarChar(100)
+  old_values      Json?
+  new_values      Json?
+  created_at      DateTime?     @default(now()) @db.Timestamp(0)
+  organizations   organizations @relation(fields: [organization_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_activity_logs_organization")
+  users           users?        @relation(fields: [user_id], references: [id], onUpdate: NoAction, map: "fk_activity_logs_user")
+
+  @@index([user_id], map: "fk_activity_logs_user")
+  @@index([entity_type, entity_id], map: "idx_activity_logs_entity")
+  @@index([organization_id], map: "idx_activity_logs_org")
+}
+
+model attachments {
+  id          BigInt    @id @default(autoincrement())
+  task_id     BigInt
+  uploaded_by BigInt
+  file_name   String?   @db.VarChar(255)
+  file_url    String?   @db.Text
+  mime_type   String?   @db.VarChar(100)
+  file_size   BigInt?
+  created_at  DateTime? @default(now()) @db.Timestamp(0)
+  tasks       tasks     @relation(fields: [task_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_attachments_task")
+  users       users     @relation(fields: [uploaded_by], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_attachments_user")
+
+  @@index([task_id], map: "fk_attachments_task")
+  @@index([uploaded_by], map: "fk_attachments_user")
+}
+
+model board_columns {
+  id         BigInt    @id @default(autoincrement())
+  project_id BigInt
+  name       String    @db.VarChar(100)
+  position   Int?      @default(0)
+  created_at DateTime? @default(now()) @db.Timestamp(0)
+  projects   projects  @relation(fields: [project_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_board_columns_project")
+  tasks      tasks[]
+
+  @@index([project_id], map: "fk_board_columns_project")
+}
+
+model comments {
+  id         BigInt    @id @default(autoincrement())
+  task_id    BigInt
+  user_id    BigInt
+  comment    String    @db.LongText
+  created_at DateTime? @default(now()) @db.Timestamp(0)
+  updated_at DateTime? @default(now()) @db.Timestamp(0)
+  deleted_at DateTime? @db.Timestamp(0)
+  tasks      tasks     @relation(fields: [task_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_comments_task")
+  users      users     @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_comments_user")
+
+  @@index([user_id], map: "fk_comments_user")
+  @@index([task_id], map: "idx_comments_task")
+}
+
+model labels {
+  id              BigInt        @id @default(autoincrement())
+  organization_id BigInt
+  name            String        @db.VarChar(100)
+  color           String?       @db.VarChar(20)
+  created_at      DateTime?     @default(now()) @db.Timestamp(0)
+  organizations   organizations @relation(fields: [organization_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_labels_organization")
+  task_labels     task_labels[]
+
+  @@index([organization_id], map: "fk_labels_organization")
+}
+
+model milestones {
+  id          BigInt             @id @default(autoincrement())
+  project_id  BigInt
+  title       String             @db.VarChar(255)
+  description String?            @db.Text
+  due_date    DateTime?          @db.Date
+  status      milestones_status? @default(pending)
+  created_at  DateTime?          @default(now()) @db.Timestamp(0)
+  updated_at  DateTime?          @default(now()) @db.Timestamp(0)
+  deleted_at  DateTime?          @db.Timestamp(0)
+  projects    projects           @relation(fields: [project_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_milestones_project")
+  tasks       tasks[]
+
+  @@index([project_id], map: "fk_milestones_project")
+}
+
+model notifications {
+  id          BigInt    @id @default(autoincrement())
+  user_id     BigInt
+  type        String?   @db.VarChar(100)
+  title       String?   @db.VarChar(255)
+  message     String?   @db.Text
+  is_read     Boolean?  @default(false)
+  entity_type String?   @db.VarChar(100)
+  entity_id   BigInt?
+  created_at  DateTime? @default(now()) @db.Timestamp(0)
+  users       users     @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_notifications_user")
+
+  @@index([user_id], map: "idx_notifications_user")
+}
+
+model organizations {
+  id            BigInt          @id @default(autoincrement())
+  name          String          @db.VarChar(255)
+  slug          String?         @unique(map: "slug") @db.VarChar(100)
+  logo_url      String?         @db.Text
+  created_at    DateTime?       @default(now()) @db.Timestamp(0)
+  updated_at    DateTime?       @default(now()) @db.Timestamp(0)
+  activity_logs activity_logs[]
+  labels        labels[]
+  projects      projects[]
+  users         users[]
+}
+
+model project_members {
+  id         BigInt                @id @default(autoincrement())
+  project_id BigInt
+  user_id    BigInt
+  role       project_members_role? @default(developer)
+  joined_at  DateTime?             @default(now()) @db.Timestamp(0)
+  projects   projects              @relation(fields: [project_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_project_members_project")
+  users      users                 @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_project_members_user")
+
+  @@unique([project_id, user_id], map: "uk_project_member")
+  @@index([user_id], map: "fk_project_members_user")
+}
+
+model projects {
+  id              BigInt            @id @default(autoincrement())
+  organization_id BigInt
+  name            String            @db.VarChar(255)
+  code            String?           @db.VarChar(50)
+  description     String?           @db.Text
+  start_date      DateTime?         @db.Date
+  end_date        DateTime?         @db.Date
+  status          projects_status?  @default(planned)
+  created_by      BigInt?
+  created_at      DateTime?         @default(now()) @db.Timestamp(0)
+  updated_at      DateTime?         @default(now()) @db.Timestamp(0)
+  deleted_at      DateTime?         @db.Timestamp(0)
+  board_columns   board_columns[]
+  milestones      milestones[]
+  project_members project_members[]
+  users           users?            @relation(fields: [created_by], references: [id], onUpdate: NoAction, map: "fk_projects_created_by")
+  organizations   organizations     @relation(fields: [organization_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_projects_organization")
+  sprints         sprints[]
+  tasks           tasks[]
+
+  @@index([created_by], map: "fk_projects_created_by")
+  @@index([organization_id], map: "idx_projects_organization")
+}
+
+model roles {
+  id          BigInt       @id @default(autoincrement())
+  name        String       @unique(map: "name") @db.VarChar(100)
+  description String?      @db.Text
+  created_at  DateTime?    @default(now()) @db.Timestamp(0)
+  user_roles  user_roles[]
+}
+
+model sprints {
+  id         BigInt          @id @default(autoincrement())
+  project_id BigInt
+  name       String          @db.VarChar(255)
+  goal       String?         @db.Text
+  start_date DateTime?       @db.Date
+  end_date   DateTime?       @db.Date
+  status     sprints_status? @default(planned)
+  created_at DateTime?       @default(now()) @db.Timestamp(0)
+  updated_at DateTime?       @default(now()) @db.Timestamp(0)
+  deleted_at DateTime?       @db.Timestamp(0)
+  projects   projects        @relation(fields: [project_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_sprints_project")
+  tasks      tasks[]
+
+  @@index([project_id], map: "fk_sprints_project")
+}
+
+model task_dependencies {
+  task_id                                           BigInt
+  depends_on_task_id                                BigInt
+  tasks_task_dependencies_depends_on_task_idTotasks tasks  @relation("task_dependencies_depends_on_task_idTotasks", fields: [depends_on_task_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_task_dependencies_depends_on")
+  tasks_task_dependencies_task_idTotasks            tasks  @relation("task_dependencies_task_idTotasks", fields: [task_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_task_dependencies_task")
+
+  @@id([task_id, depends_on_task_id])
+  @@index([depends_on_task_id], map: "fk_task_dependencies_depends_on")
+}
+
+model task_labels {
+  task_id  BigInt
+  label_id BigInt
+  labels   labels @relation(fields: [label_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_task_labels_label")
+  tasks    tasks  @relation(fields: [task_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_task_labels_task")
+
+  @@id([task_id, label_id])
+  @@index([label_id], map: "fk_task_labels_label")
+}
+
+model tasks {
+  id                                                            BigInt              @id @default(autoincrement())
+  project_id                                                    BigInt
+  sprint_id                                                     BigInt?
+  milestone_id                                                  BigInt?
+  board_column_id                                               BigInt?
+  parent_task_id                                                BigInt?
+  title                                                         String              @db.VarChar(255)
+  description                                                   String?             @db.LongText
+  type                                                          tasks_type?         @default(task)
+  priority                                                      tasks_priority?     @default(medium)
+  status                                                        tasks_status?       @default(todo)
+  assignee_id                                                   BigInt?
+  reporter_id                                                   BigInt?
+  estimated_hours                                               Decimal?            @default(0.00) @db.Decimal(10, 2)
+  actual_hours                                                  Decimal?            @default(0.00) @db.Decimal(10, 2)
+  progress_percent                                              Int?                @default(0) @db.TinyInt
+  recurrence_rule                                               String?             @db.VarChar(255)
+  start_date                                                    DateTime?           @db.DateTime(0)
+  due_date                                                      DateTime?           @db.DateTime(0)
+  completed_at                                                  DateTime?           @db.DateTime(0)
+  sort_order                                                    Int?                @default(0)
+  created_at                                                    DateTime?           @default(now()) @db.Timestamp(0)
+  updated_at                                                    DateTime?           @default(now()) @db.Timestamp(0)
+  deleted_at                                                    DateTime?           @db.Timestamp(0)
+  attachments                                                   attachments[]
+  comments                                                      comments[]
+  task_dependencies_task_dependencies_depends_on_task_idTotasks task_dependencies[] @relation("task_dependencies_depends_on_task_idTotasks")
+  task_dependencies_task_dependencies_task_idTotasks            task_dependencies[] @relation("task_dependencies_task_idTotasks")
+  task_labels                                                   task_labels[]
+  users_tasks_assignee_idTousers                                users?              @relation("tasks_assignee_idTousers", fields: [assignee_id], references: [id], onUpdate: NoAction, map: "fk_tasks_assignee")
+  board_columns                                                 board_columns?      @relation(fields: [board_column_id], references: [id], onUpdate: NoAction, map: "fk_tasks_board_column")
+  milestones                                                    milestones?         @relation(fields: [milestone_id], references: [id], onUpdate: NoAction, map: "fk_tasks_milestone")
+  tasks                                                         tasks?              @relation("tasksTotasks", fields: [parent_task_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_tasks_parent_task")
+  other_tasks                                                   tasks[]             @relation("tasksTotasks")
+  projects                                                      projects            @relation(fields: [project_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_tasks_project")
+  users_tasks_reporter_idTousers                                users?              @relation("tasks_reporter_idTousers", fields: [reporter_id], references: [id], onUpdate: NoAction, map: "fk_tasks_reporter")
+  sprints                                                       sprints?            @relation(fields: [sprint_id], references: [id], onUpdate: NoAction, map: "fk_tasks_sprint")
+  time_logs                                                     time_logs[]
+
+  @@index([board_column_id], map: "fk_tasks_board_column")
+  @@index([milestone_id], map: "fk_tasks_milestone")
+  @@index([sprint_id], map: "fk_tasks_sprint")
+  @@index([assignee_id], map: "idx_tasks_assignee")
+  @@index([due_date], map: "idx_tasks_due_date")
+  @@index([parent_task_id], map: "idx_tasks_parent")
+  @@index([priority], map: "idx_tasks_priority")
+  @@index([project_id], map: "idx_tasks_project")
+  @@index([reporter_id], map: "idx_tasks_reporter")
+  @@index([status], map: "idx_tasks_status")
+}
+
+model time_logs {
+  id               BigInt    @id @default(autoincrement())
+  task_id          BigInt
+  user_id          BigInt
+  started_at       DateTime? @db.DateTime(0)
+  ended_at         DateTime? @db.DateTime(0)
+  duration_minutes Int?      @default(0)
+  note             String?   @db.Text
+  created_at       DateTime? @default(now()) @db.Timestamp(0)
+  tasks            tasks     @relation(fields: [task_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_time_logs_task")
+  users            users     @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_time_logs_user")
+
+  @@index([user_id], map: "fk_time_logs_user")
+  @@index([task_id], map: "idx_time_logs_task")
+}
+
+model user_roles {
+  id         BigInt    @id @default(autoincrement())
+  user_id    BigInt
+  role_id    BigInt
+  created_at DateTime? @default(now()) @db.Timestamp(0)
+  roles      roles     @relation(fields: [role_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_user_roles_role")
+  users      users     @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_user_roles_user")
+
+  @@unique([user_id, role_id], map: "uk_user_role")
+  @@index([role_id], map: "fk_user_roles_role")
+}
+
+model users {
+  id                             BigInt            @id @default(autoincrement())
+  organization_id                BigInt
+  first_name                     String?           @db.VarChar(100)
+  last_name                      String?           @db.VarChar(100)
+  email                          String            @unique(map: "email") @db.VarChar(255)
+  password_hash                  String            @db.VarChar(255)
+  avatar_url                     String?           @db.Text
+  status                         users_status?     @default(active)
+  last_login_at                  DateTime?         @db.DateTime(0)
+  created_at                     DateTime?         @default(now()) @db.Timestamp(0)
+  updated_at                     DateTime?         @default(now()) @db.Timestamp(0)
+  deleted_at                     DateTime?         @db.Timestamp(0)
+  activity_logs                  activity_logs[]
+  attachments                    attachments[]
+  comments                       comments[]
+  notifications                  notifications[]
+  project_members                project_members[]
+  projects                       projects[]
+  tasks_tasks_assignee_idTousers tasks[]           @relation("tasks_assignee_idTousers")
+  tasks_tasks_reporter_idTousers tasks[]           @relation("tasks_reporter_idTousers")
+  time_logs                      time_logs[]
+  user_roles                     user_roles[]
+  organizations                  organizations     @relation(fields: [organization_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_users_organization")
+
+  @@index([organization_id], map: "idx_users_organization")
+}
+
+enum project_members_role {
+  owner
+  manager
+  developer
+  tester
+  viewer
+}
+
+enum milestones_status {
+  pending
+  in_progress
+  completed
+}
+
+enum sprints_status {
+  planned
+  active
+  completed
+}
+
+enum projects_status {
+  planned
+  active
+  on_hold
+  completed
+  cancelled
+}
+
+enum users_status {
+  active
+  inactive
+  invited
+}
+
+enum tasks_type {
+  task
+  bug
+  story
+  epic
+  improvement
+}
+
+enum tasks_priority {
+  low
+  medium
+  high
+  critical
+}
+
+enum tasks_status {
+  todo
+  in_progress
+  review
+  blocked
+  done
+}

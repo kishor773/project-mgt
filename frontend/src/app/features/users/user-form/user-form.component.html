@@ -1,0 +1,34 @@
+<form [formGroup]="userForm" (ngSubmit)="onSubmit()" style="display: flex; flex-direction: column; gap: 1.5rem;">
+  
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+    <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+      <label for="first_name" style="font-weight: 500;">First Name *</label>
+      <input type="text" id="first_name" formControlName="first_name" placeholder="John" style="padding: 0.75rem; border: 1px solid #e5e7eb; border-radius: 6px; width: 100%; outline: none;" />
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+      <label for="last_name" style="font-weight: 500;">Last Name *</label>
+      <input type="text" id="last_name" formControlName="last_name" placeholder="Doe" style="padding: 0.75rem; border: 1px solid #e5e7eb; border-radius: 6px; width: 100%; outline: none;" />
+    </div>
+  </div>
+
+  <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+    <label for="email" style="font-weight: 500;">Email Address *</label>
+    <input type="email" id="email" formControlName="email" placeholder="user@example.com" style="padding: 0.75rem; border: 1px solid #e5e7eb; border-radius: 6px; width: 100%; outline: none;" />
+  </div>
+
+  <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+    <label for="organization_id" style="font-weight: 500;">Organization *</label>
+    <select id="organization_id" formControlName="organization_id" style="padding: 0.75rem; border: 1px solid #e5e7eb; border-radius: 6px; width: 100%; outline: none; background: white;">
+      <option value="" disabled selected>Select an Organization</option>
+      <option *ngFor="let org of organizations" [value]="org.id">{{ org.name }}</option>
+    </select>
+  </div>
+
+  <div style="display: flex; justify-content: flex-end; gap: 1rem; margin-top: 1rem;">
+    <button type="button" (click)="close.emit()" style="padding: 0.75rem 1.25rem; border: none; background: transparent; color: #6b7280; font-weight: 500; cursor: pointer;">Cancel</button>
+    <button type="submit" [disabled]="userForm.invalid || isSubmitting" style="padding: 0.75rem 1.25rem; border: none; background: var(--primary-color); color: white; border-radius: 6px; font-weight: 500; cursor: pointer; opacity: {{ userForm.invalid ? '0.5' : '1' }};">
+      {{ isSubmitting ? 'Sending...' : 'Send Invite' }}
+    </button>
+  </div>
+</form>

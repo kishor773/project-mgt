@@ -1,0 +1,24 @@
+<form [formGroup]="orgForm" (ngSubmit)="onSubmit()" style="display: flex; flex-direction: column; gap: 1.5rem;">
+  
+  <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+    <label for="name" style="font-weight: 500;">Organization Name *</label>
+    <input type="text" id="name" formControlName="name" placeholder="e.g. Acme Corp" style="padding: 0.75rem; border: 1px solid #e5e7eb; border-radius: 6px; width: 100%; outline: none;" />
+  </div>
+
+  <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+    <label for="slug" style="font-weight: 500;">Slug *</label>
+    <input type="text" id="slug" formControlName="slug" placeholder="e.g. acme-corp" style="padding: 0.75rem; border: 1px solid #e5e7eb; border-radius: 6px; width: 100%; outline: none;" />
+  </div>
+
+  <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+    <label for="logo_url" style="font-weight: 500;">Logo URL</label>
+    <input type="text" id="logo_url" formControlName="logo_url" placeholder="https://..." style="padding: 0.75rem; border: 1px solid #e5e7eb; border-radius: 6px; width: 100%; outline: none;" />
+  </div>
+
+  <div style="display: flex; justify-content: flex-end; gap: 1rem; margin-top: 1rem;">
+    <button type="button" (click)="close.emit()" style="padding: 0.75rem 1.25rem; border: none; background: transparent; color: #6b7280; font-weight: 500; cursor: pointer;">Cancel</button>
+    <button type="submit" [disabled]="orgForm.invalid || isSubmitting" style="padding: 0.75rem 1.25rem; border: none; background: var(--primary-color); color: white; border-radius: 6px; font-weight: 500; cursor: pointer; opacity: {{ orgForm.invalid ? '0.5' : '1' }};">
+      {{ isSubmitting ? 'Saving...' : 'Save Organization' }}
+    </button>
+  </div>
+</form>
