@@ -1,0 +1,55 @@
+<div class="page-container">
+  <div class="page-header"
+    style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+    <div>
+      <h2 style="margin-bottom: 0.5rem; font-size: 1.5rem;">Organizations</h2>
+      <p style="color: var(--text-secondary); margin: 0;">Manage companies and their workspaces.</p>
+    </div>
+    <p-button (onClick)="showDialog()" label="Add Organization" size="small" icon="pi pi-plus"></p-button>
+  </div>
+
+  <div class="glass-panel"
+    style="padding: 1.5rem; border-radius: 12px; background: rgba(255,255,255,0.7); backdrop-filter: blur(10px); box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+
+    <p-table [value]="organizations" [loading]="loading" styleClass="p-datatable-sm"
+      [tableStyle]="{'min-width': '50rem'}">
+      <ng-template pTemplate="header">
+        <tr>
+          <th>Name</th>
+          <th>Slug</th>
+          <th>Members</th>
+          <!-- <th>Status</th> -->
+          <th style="text-align: center;">Actions</th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-org>
+        <tr>
+          <td><strong style="font-weight: 500;">{{ org.name }}</strong></td>
+          <td><code
+              style="background: var(--bg-color); padding: 0.2rem 0.5rem; border-radius: 4px;">{{ org.slug }}</code>
+          </td>
+          <td>{{ org.members }}</td>
+          <!-- <td>
+            <p-tag [value]="org.status"></p-tag>
+          </td> -->
+          <td style="text-align: center;">
+            <p-button icon="pi pi-pencil" [text]="true" [rounded]="true" severity="secondary" size="small"
+              [style]="{'margin-right': '0.5rem'}"></p-button>
+            <p-button icon="pi pi-trash" [text]="true" [rounded]="true" severity="danger" size="small"></p-button>
+          </td>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="5" style="text-align: center; padding: 2rem;">No organizations found.</td>
+        </tr>
+      </ng-template>
+    </p-table>
+
+  </div>
+</div>
+
+<p-dialog header="Add New Organization" [modal]="true" [(visible)]="visible" [style]="{ width: '30rem' }">
+  <app-organization-form (close)="visible = false" (saved)="visible = false; loadOrganizations()">
+  </app-organization-form>
+</p-dialog>
