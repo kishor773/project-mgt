@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-users.dto';
 import { UpdateUserDto } from './dto/update-users.dto';
 import { PrismaService } from '../../prisma/prisma.service';
@@ -7,9 +7,28 @@ import { PrismaService } from '../../prisma/prisma.service';
 export class UsersService {
   constructor(private prisma: PrismaService) {}
 
-  create(createUserDto: CreateUserDto) {
+  async create(createUserDto: CreateUserDto) {
+    const createData = createUserDto as any;
+    const organizationId = createData.organization_id != null ? BigInt(createData.organization_id) : undefined;
+    delete createData.organization_id;
+
+    const orgToConnect = organizationId
+      ? { id: organizationId }
+      : (await this.prisma.organizations.findFirst({ select: { id: true } }));
+
+    if (!orgToConnect || !orgToConnect.id) {
+      throw new BadRequestException(
+        'organization_id is required to create a user, or an organization must already exist to attach to'
+      );
+    }
+
     return this.prisma.users.create({
-      data: createUserDto as any,
+      data: {
+        ...createData,
+        organizations: {
+          connect: { id: BigInt(orgToConnect.id) },
+        },
+      },
     });
   }
 
