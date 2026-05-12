@@ -5,6 +5,7 @@ import { UsersService } from '../../../core/services/api/users.service';
 import { OrganizationsService } from '../../../core/services/api/organizations.service';
 import { SelectModule } from 'primeng/select';
 import { InputTextModule } from 'primeng/inputtext';
+import { RolesService } from '../../../core/services/api/roles.service';
 
 @Component({
   selector: 'app-user-form',
@@ -20,17 +21,20 @@ export class UserFormComponent implements OnInit {
   userForm: FormGroup;
   isSubmitting = false;
   organizations: any[] = [];
+  roles: any[] = [];
 
   constructor(
     private fb: FormBuilder,
     private usersService: UsersService,
-    private orgService: OrganizationsService
+    private orgService: OrganizationsService,
+    private rolesService: RolesService
   ) {
     this.userForm = this.fb.group({
       first_name: ['', Validators.required],
       last_name: ['', Validators.required],
       email: ['', [Validators.required, Validators.email]],
       organization_id: ['', Validators.required],
+      role_id: ['', Validators.required],
       password_hash: ['temp_password_123', Validators.required] // Temporary for mocking
     });
   }
@@ -38,6 +42,9 @@ export class UserFormComponent implements OnInit {
   ngOnInit() {
     this.orgService.findAll().subscribe((orgs: any[]) => {
       this.organizations = orgs;
+    });
+    this.rolesService.findAll().subscribe((roles: any[]) => {
+      this.roles = roles;
     });
   }
 
