@@ -34,7 +34,7 @@
           </td> -->
           <td style="text-align: center;">
             <p-button icon="pi pi-pencil" [text]="true" [rounded]="true" severity="secondary" size="small"
-              [style]="{'margin-right': '0.5rem'}"></p-button>
+              [style]="{'margin-right': '0.5rem'}" (onClick)="viewEditOrg(org)"></p-button>
             <p-button icon="pi pi-trash" [text]="true" [rounded]="true" severity="danger" size="small"></p-button>
           </td>
         </tr>
@@ -51,5 +51,10 @@
 
 <p-dialog header="Add New Organization" [modal]="true" [(visible)]="visible" [style]="{ width: '30rem' }">
   <app-organization-form (close)="visible = false" (saved)="visible = false; loadOrganizations()">
+  </app-organization-form>
+</p-dialog>
+
+<p-dialog header="Edit Organization" [modal]="true" [(visible)]="editOrgVisible" [style]="{ width: '30rem' }">
+  <app-organization-form (close)="editOrgVisible = false" (saved)="editOrgVisible = false; loadOrganizations()">
   </app-organization-form>
 </p-dialog>

@@ -21,7 +21,8 @@ export class OrganizationsListComponent implements OnInit {
   loading = true;
   showModal = false;
   visible: boolean = false;
-
+  editOrgVisible: boolean = false;
+  selectedOrganization: Organization | null = null;
   constructor(
     private organizationsService: OrganizationsService,
     private cdr: ChangeDetectorRef
@@ -53,5 +54,10 @@ export class OrganizationsListComponent implements OnInit {
         this.cdr.detectChanges();
       }
     });
+  }
+
+  viewEditOrg(org: Organization) {
+    this.selectedOrganization = org;
+    this.editOrgVisible = true;
   }
 }
