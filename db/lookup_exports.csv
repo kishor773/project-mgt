@@ -1,0 +1,12 @@
+id,lookup_name,lookup_value,status,created_at
+1,"Task Status",Pending,1,"2026-05-23 13:05:14"
+2,"Task Status","In Progress",1,"2026-05-23 13:05:14"
+3,"Task Status",Completed,1,"2026-05-23 13:05:14"
+4,"Task Status",Deprioritized,1,"2026-05-23 13:05:14"
+5,"Task Status","Read to test",1,"2026-05-23 13:05:14"
+6,"Task Type",Enhancement,1,"2026-05-23 13:05:14"
+7,"Task Type",Bug,1,"2026-05-23 13:05:14"
+8,"Task Priority",Low,1,"2026-05-23 13:05:14"
+9,"Task Priority",Medium,1,"2026-05-23 13:05:14"
+10,"Task Priority",High,1,"2026-05-23 13:05:14"
+11,"Task Priority",Blocker,1,"2026-05-23 13:05:14"
