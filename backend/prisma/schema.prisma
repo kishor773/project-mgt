@@ -212,6 +212,7 @@ model projects {
 model roles {
   id                     BigInt                   @id @default(autoincrement())
   name                   String                   @unique(map: "name") @db.VarChar(100)
+  role_alias             String?                  @db.VarChar(45)
   description            String?                  @db.Text
   status                 Int                      @default(1) @db.TinyInt
   created_at             DateTime?                @default(now()) @db.Timestamp(0)

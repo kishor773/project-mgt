@@ -8,9 +8,16 @@ export class UsersService {
   constructor(private prisma: PrismaService) {}
 
   async create(createUserDto: CreateUserDto) {
-    const createData = createUserDto as any;
+    const createData = { ...createUserDto } as any;
     const organizationId = createData.organization_id != null ? BigInt(createData.organization_id) : undefined;
+    const roleId = createData.role_id != null ? BigInt(createData.role_id) : undefined;
+
     delete createData.organization_id;
+    delete createData.role_id;
+
+    if (!roleId) {
+      throw new BadRequestException('role_id is required to create a user role record');
+    }
 
     const orgToConnect = organizationId
       ? { id: organizationId }
@@ -26,14 +33,34 @@ export class UsersService {
       data: {
         ...createData,
         organizations: {
-          connect: { id: BigInt(orgToConnect.id) },
+          connect: { id: orgToConnect.id },
+        },
+        user_roles: {
+          create: {
+            role_id: roleId,
+          },
+        },
+      },
+      include: {
+        user_roles: {
+          include: {
+            roles: true,
+          },
         },
       },
     });
   }
 
   findAll() {
-    return this.prisma.users.findMany();
+    return this.prisma.users.findMany({
+      include: {
+        user_roles: {
+          include: {
+            roles: true,
+          },
+        },
+      },
+    });
   }
 
   findOne(id: number) {
@@ -41,6 +68,13 @@ export class UsersService {
     // Adjust if composite key or UUID.
     return this.prisma.users.findUnique({
       where: { id: BigInt(id) } as any,
+      include: {
+        user_roles: {
+          include: {
+            roles: true,
+          },
+        },
+      },
     });
   }
 

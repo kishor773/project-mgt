@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { CreateUserRoleDto } from './dto/create-user-roles.dto';
 import { UpdateUserRoleDto } from './dto/update-user-roles.dto';
 import { PrismaService } from '../../prisma/prisma.service';
@@ -7,9 +7,33 @@ import { PrismaService } from '../../prisma/prisma.service';
 export class UserRolesService {
   constructor(private prisma: PrismaService) {}
 
-  create(createUserRoleDto: CreateUserRoleDto) {
+  async create(createUserRoleDto: CreateUserRoleDto) {
+    const data = createUserRoleDto as any;
+
+    if (data.user_id == null || data.role_id == null) {
+      throw new BadRequestException('user_id and role_id are required to create a user role');
+    }
+
+    const userId = BigInt(data.user_id);
+    const roleId = BigInt(data.role_id);
+
+    const existing = await this.prisma.user_roles.findFirst({
+      where: {
+        user_id: userId,
+        role_id: roleId,
+      },
+    });
+
+    if (existing) {
+      return existing;
+    }
+
     return this.prisma.user_roles.create({
-      data: createUserRoleDto as any,
+      data: {
+        ...data,
+        user_id: userId,
+        role_id: roleId,
+      },
     });
   }
 
